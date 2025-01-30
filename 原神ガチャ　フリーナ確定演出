@@ -1,0 +1,139 @@
+import streamlit as st
+import random
+
+
+five_star_characters = [
+    "⭐️ナヴィア", "⭐️シロネン", "⭐️千織", "⭐️アルベド", "⭐️鍾離", "⭐️荒瀧一斗",
+    "⭐️タルタリヤ", "⭐️シグウィン", "⭐️珊瑚宮心海", "⭐️ニィロウ", "⭐️ヌヴィレット", "⭐️フリーナ",
+    "⭐️ムアラニ", "⭐️神里綾人", "⭐️モナ", "⭐️夜蘭", "⭐️七七", "⭐️アーロイ",
+    "⭐️申鶴", "⭐️神里綾華", "⭐️リオセスリ", "⭐️エウルア", "⭐️甘雨", "⭐️シトラリ",
+    "⭐️マーヴィカ", "⭐️ディシア", "⭐️アルレッキーノ", "⭐️リネ", "⭐️クレー",
+    "⭐️ディルック", "⭐️胡桃", "⭐️宵宮", "⭐️ティナリ", "⭐️白朮", "⭐️アルハイゼン",
+    "⭐️キィニチ", "⭐️ナヒーダ", "⭐️エミリエ", "⭐️刻晴", "⭐️雷電将軍",
+    "⭐️クロリンデ", "⭐️八重神子", "⭐️セノ", "⭐️放浪者", "⭐️楓原万葉",
+    "⭐️ジン", "⭐️閑雲", "⭐️ウェンティ", "⭐️魈", "⭐️チャスカ"
+]
+
+
+four_star_characters = [
+    "アンバー", "リサ", "ガイア", "バーバラ", "レザー", "香菱", "北斗", "行秋", "凝光",
+    "フィッシュル", "ベネット", "ノエル", "重雲", "ディオナ", "スクロース", "辛炎",
+    "ロサリア", "煙緋", "早柚", "トーマ", "ゴロー", "雲菫", "久岐忍", "鹿野院平蔵",
+    "コレイ", "ドリー", "キャンディス", "レイラ", "ファルザン", "ヨォーヨ", "ミカ",
+    "カーヴェ", "綺良々", "リネット", "フライヤ", "シャルロット", "シュヴルーズ", "嘉明",
+    "セトス", "オロルン", "藍硯"
+]
+
+
+four_star_weapons = [
+    "シナバースピンドル", "厄水の災い", "ストロング・ボーン", "エズピツァルの笛", "水仙十字の剣",
+    "船渠剣", "サーンドルの渡し守", "狼牙", "海淵のフィナーレ", "東花坊時雨",
+    "サイフォスの月明かり", "原木刀", "籠釣瓶一心", "西風剣", "天目影打", "ダークアレイの閃光",
+    "腐植の剣", "降臨の剣"
+]
+
+
+three_star_items = [
+    "冷刃", "黎明の神剣", "暗鉄剣", "飛天御剣", "倉庫番の大剣", "白鉄の大剣", "鉄影段平", "以津真天", "黒纓槍",
+    "鉱石堀の古弓", "シャープシューターの誓い", "鴉羽の弓", "魔導書", "龍殺しの英傑譚", "異世界旅行記"
+]
+
+initial_primogems = 100000
+single_pull_cost = 160
+ten_pull_cost = 1600
+
+
+five_star_counter = 0
+four_star_counter = 0
+
+def calculate_five_star_rate(counter: int) -> float:
+    """★5確率を計算（60連目以降確率が上昇）"""
+    base_rate = 0.006  
+    if counter >= 60:
+        additional_rate = 0.06 * (counter - 59)  
+        return min(base_rate + additional_rate, 1.0)  
+    return base_rate
+
+def gacha_single() -> str:
+    """1回ガチャを引く"""
+    global five_star_counter, four_star_counter
+    five_star_rate = calculate_five_star_rate(five_star_counter)
+    four_star_rate = 0.051 
+    draw = random.random()
+
+  
+    if draw < five_star_rate:
+        five_star_counter = 0
+        four_star_counter += 1
+        character = random.choice(five_star_characters)
+        if character == "⭐️フリーナ":
+            return "【確定演出！】★5キャラ出現！おめでとう！ ⭐️フリーナ が当たりました！！！"
+        return f"★5キャラ出現！おめでとう！ {character} が当たりました！"
+
+    
+    if draw < five_star_rate + four_star_rate:
+        four_star_counter = 0
+        five_star_counter += 1
+        if random.random() < 0.5:
+            return f"★4キャラ！ {random.choice(four_star_characters)} を獲得しました！"
+        else:
+            return f"★4武器！ {random.choice(four_star_weapons)} を獲得しました！"
+
+    
+    five_star_counter += 1
+    four_star_counter += 1
+    return f"★3武器：{random.choice(three_star_items)}"
+
+def gacha_ten(primogems: int) -> int:
+    """10連ガチャを引く"""
+    global five_star_counter, four_star_counter
+    if primogems < ten_pull_cost:
+        print("原石が足りません！")
+        return primogems
+
+    primogems -= ten_pull_cost
+    print("10連ガチャ結果:")
+    guaranteed_four_star = False  
+    for i in range(10):
+        result = gacha_single()
+        print(result)
+        if "★4" in result or "★5" in result:
+            guaranteed_four_star = True
+
+    if not guaranteed_four_star:
+        if random.random() < 0.5:
+            print(f"★4キャラ！ {random.choice(four_star_characters)} を獲得しました！（確定）")
+        else:
+            print(f"★4武器！ {random.choice(four_star_weapons)} を獲得しました！（確定）")
+    return primogems
+
+def main():
+    global initial_primogems
+    print("「原神」ガチャシミュレーションへようこそ！")
+    print(f"初期原石：{initial_primogems}原石")
+
+    while True:
+        print("\n1. 1回ガチャを引く (160原石)")
+        print("2. 10回ガチャを引く (1600原石)")
+        print("3. 終了する")
+        choice = input("選択してください (1/2/3): ")
+
+        if choice == "1":
+            if initial_primogems >= single_pull_cost:
+                initial_primogems -= single_pull_cost
+                print(gacha_single())
+                print(f"残り原石：{initial_primogems}原石")
+            else:
+                print("原石が足りません！")
+        elif choice == "2":
+            initial_primogems = gacha_ten(initial_primogems)
+            print(f"残り原石：{initial_primogems}原石")
+        elif choice == "3":
+            print("ガチャシミュレーションを終了します。ありがとうございました！")
+            break
+        else:
+            print("無効な入力です。もう一度選んでください。")
+
+if __name__ == "__main__":
+    main()
+
